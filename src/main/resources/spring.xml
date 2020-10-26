@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+    <!--注册到spring容器-->
+    <context:component-scan base-package="com.itheima.job"/>
+    <!--任务策略-->
+    <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean" id="rw">
+        <!--任务触发时调用的-->
+        <!--类名 这个类是注解注册到spring的-->
+        <property name="targetObject" ref="myJob"/>
+        <!--方法名-->
+        <property name="targetMethod" value="ff"/>
+        <!--并发,
+        false单线程
+        true在规定的周期内没有完成就采用多线程
+        -->
+        <property name="concurrent" value="true"/>
+    </bean>
+    <!--触发器-->
+    <bean class="org.springframework.scheduling.quartz.CronTriggerFactoryBean" id="cfq">
+        <!--7子表达式 : 秒 分 时 日 月 周 年(年可以省略不写)-->
+        <!--从0秒开始,每过?秒就执行一次-->
+        <property name="cronExpression" value="0/5 * * * * ?"/>
+        <!--调用策略-->
+        <property name="jobDetail" ref="rw"/>
+    </bean>
+
+    <!--调度容器-->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="cfq"/>
+            </list>
+        </property>
+    </bean>
+
+    <task:annotation-driven/>
+    <!--任务调度线程池-->
+    <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler"/>
+
+</beans>
